@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/read.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Dashboard - Motos</title>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-container">
+            <h1><i class="fa-solid fa-motorcycle"></i> Motos</h1>
+            <nav>
+                <ul>
+                    <a href="{{ url_for('create.create_page')}}">
+                        <li><i class="fa-solid fa-plus"></i> Agregar Moto</li>
+                    </a>
+                    <a href="{{ url_for('read.home')}}">
+                        <li><i class="fa-solid fa-list"></i> Ver Todas</li>
+                    </a>
+                </ul>
+            </nav>
+            <footer>
+                2026 &copy; Oliver - Nieto
+            </footer>
+        </div>
+    </div>
+
+    <div class="sidebar-toggle">
+        <button><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-confirm">
+            <div class="modal-header">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <h3>¿Estás seguro?</h3>
+            </div>
+            <p>¿Deseas eliminar esta moto? Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">
+                    <i class="fa-solid fa-xmark"></i> No, Cancelar
+                </button>
+                <a href="#" id="confirmDelete" class="btn-confirm">
+                    <i class="fa-solid fa-check"></i> Sí, Eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <main class="container">
+        <div class="search-container">
+            <div class="search-header">
+                <div class="header-content">
+                    <div>
+                        <h2><i class="fa-solid fa-sliders"></i> Filtros de Búsqueda</h2>
+                        <p>Encuentra la moto perfecta usando múltiples criterios</p>
+                    </div>
+                    <button type="button" class="btn-advanced-toggle" id="advancedToggle" onclick="toggleAdvancedFilters()">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span id="toggleText">Filtros Avanzados</span>
+                    </button>
+                </div>
+            </div>
+
+            <form id="search" method="GET" action="{{ url_for('read.home') }}">
+                <!-- FILTROS BÁSICOS -->
+                <div class="filters-basic" id="basicFilters">
+                    <div class="filters-grid-basic">
+                        <!-- Búsqueda General -->
+                        <div class="filter-group filter-search">
+                            <label for="search_query">
+                                <div class="label-icon">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </div>
+                                <span>Búsqueda General</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" id="search_query" name="search_query" placeholder="Buscar por modelo, marca o color..." value="{{ search_query }}">
+                                {% if search_query %}
+                                <span class="input-clear" onclick="clearInput('search_query')">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Ordenar por -->
+                        <div class="filter-group">
+                            <label for="order_by_basic">
+                                <div class="label-icon">
+                                    <i class="fa-solid fa-arrow-down-wide-short"></i>
+                                </div>
+                                <span>Ordenar por</span>
+                            </label>
+                            <div class="select-wrapper">
+                                <select name="order_by" id="order_by_basic">
+                                    <option value="id_asc" {% if order_by == 'id_asc' %}selected{% endif %}>Más antiguos</option>
+                                    <option value="id_desc" {% if order_by == 'id_desc' %}selected{% endif %}>Más recientes</option>
+                                    <option value="modelo_asc" {% if order_by == 'modelo_asc' %}selected{% endif %}>Modelo (A-Z)</option>
+                                    <option value="modelo_desc" {% if order_by == 'modelo_desc' %}selected{% endif %}>Modelo (Z-A)</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTROS AVANZADOS -->
+                <div class="filters-advanced" id="advancedFilters" style="display: none;">
+                    <div class="filters-grid">
+                        <!-- Filtro por Modelo -->
+                        <div class="filter-group">
+                            <label for="modelo">
+                                <div class="label-icon">
+                                    <i class="fa-solid fa-tag"></i>
+                                </div>
+                                <span>Modelo</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" id="modelo" name="modelo" placeholder="Ej: R15, CBR..." value="{{ modelo }}">
+                                {% if modelo %}
+                                <span class="input-clear" onclick="clearInput('modelo')">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Filtro por Marca -->
+                        <div class="filter-group">
+                            <label for="marca">
+                                <div class="label-icon">
+                                    <i class="fa-solid fa-building"></i>
+                                </div>
+                                <span>Marca</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" id="marca" name="marca" placeholder="Ej: Yamaha, Honda..." value="{{ marca }}">
+                                {% if marca %}
+                                <span class="input-clear" onclick="clearInput('marca')">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Filtro por Color -->
+                        <div class="filter-group">
+                            <label for="color">
+                                <div class="label-icon">
+                                    <i class="fa-solid fa-palette"></i>
+                                </div>
+                                <span>Color</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" id="color" name="color" placeholder="Ej: Rojo, Azul..." value="{{ color }}">
+                                {% if color %}
+                                <span class="input-clear" onclick="clearInput('color')">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Filtro por Cilindraje -->
+                        <div class="filter-group">
+                            <label for="cilindraje_range">
+                                <div class="label-icon">
+                                    <i class="fa-solid fa-gauge-high"></i>
+                                </div>
+                                <span>Cilindraje</span>
+                            </label>
+                            <div class="select-wrapper">
+                                <select name="cilindraje_range" id="cilindraje_range">
+                                    <option value="all" {% if cilindraje_range == 'all' %}selected{% endif %}>Todos los rangos</option>
+                                    <option value="0-100" {% if cilindraje_range == '0-100' %}selected{% endif %}>0cc - 100cc</option>
+                                    <option value="100-200" {% if cilindraje_range == '100-200' %}selected{% endif %}>100cc - 200cc</option>
+                                    <option value="200-300" {% if cilindraje_range == '200-300' %}selected{% endif %}>200cc - 300cc</option>
+                                    <option value="300-500" {% if cilindraje_range == '300-500' %}selected{% endif %}>300cc - 500cc</option>
+                                    <option value="500-750" {% if cilindraje_range == '500-750' %}selected{% endif %}>500cc - 750cc</option>
+                                    <option value="750-1000" {% if cilindraje_range == '750-1000' %}selected{% endif %}>750cc - 1000cc</option>
+                                    <option value="1000-plus" {% if cilindraje_range == '1000-plus' %}selected{% endif %}>1000cc+</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-icon"></i>
+                            </div>
+                        </div>
+
+                        <!-- Filtro de Ordenamiento Avanzado -->
+                        <div class="filter-group">
+                            <label for="order_by_advanced">
+                                <div class="label-icon">
+                                    <i class="fa-solid fa-arrow-down-wide-short"></i>
+                                </div>
+                                <span>Ordenar por</span>
+                            </label>
+                            <div class="select-wrapper">
+                                <select name="order_by" id="order_by_advanced">
+                                    <option value="id_asc" {% if order_by == 'id_asc' %}selected{% endif %}>ID (Ascendente)</option>
+                                    <option value="id_desc" {% if order_by == 'id_desc' %}selected{% endif %}>ID (Descendente)</option>
+                                    <option value="modelo_asc" {% if order_by == 'modelo_asc' %}selected{% endif %}>Modelo (A-Z)</option>
+                                    <option value="modelo_desc" {% if order_by == 'modelo_desc' %}selected{% endif %}>Modelo (Z-A)</option>
+                                    <option value="marca_asc" {% if order_by == 'marca_asc' %}selected{% endif %}>Marca (A-Z)</option>
+                                    <option value="marca_desc" {% if order_by == 'marca_desc' %}selected{% endif %}>Marca (Z-A)</option>
+                                    <option value="cilindraje_asc" {% if order_by == 'cilindraje_asc' %}selected{% endif %}>Cilindraje (Menor a Mayor)</option>
+                                    <option value="cilindraje_desc" {% if order_by == 'cilindraje_desc' %}selected{% endif %}>Cilindraje (Mayor a Menor)</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>Buscar</span>
+                    </button>
+                    <a href="{{ url_for('read.home') }}" class="btn-clear">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Limpiar Filtros</span>
+                    </a>
+                </div>
+            </form>
+            
+            {% if search_query or modelo or marca or color or cilindraje_range != 'all' or order_by != 'id_asc' %}
+            <div class="active-filters">
+                <div class="filters-header">
+                    <span class="filter-title">
+                        <i class="fa-solid fa-filter"></i> Filtros activos
+                    </span>
+                    <span class="filter-results">{{ motos|length }} resultados</span>
+                </div>
+                <div class="filters-badges">
+                    {% if search_query %}
+                    <span class="filter-badge">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>Búsqueda: <strong>{{ search_query }}</strong></span>
+                    </span>
+                    {% endif %}
+                    {% if modelo %}
+                    <span class="filter-badge">
+                        <i class="fa-solid fa-tag"></i>
+                        <span>Modelo: <strong>{{ modelo }}</strong></span>
+                    </span>
+                    {% endif %}
+                    {% if marca %}
+                    <span class="filter-badge">
+                        <i class="fa-solid fa-building"></i>
+                        <span>Marca: <strong>{{ marca }}</strong></span>
+                    </span>
+                    {% endif %}
+                    {% if color %}
+                    <span class="filter-badge">
+                        <i class="fa-solid fa-palette"></i>
+                        <span>Color: <strong>{{ color }}</strong></span>
+                    </span>
+                    {% endif %}
+                    {% if cilindraje_range != 'all' %}
+                    <span class="filter-badge">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span>Cilindraje: <strong>{{ cilindraje_range.replace('-', 'cc - ') }}cc</strong></span>
+                    </span>
+                    {% endif %}
+                    {% if order_by != 'id_asc' %}
+                    <span class="filter-badge order-badge">
+                        <i class="fa-solid fa-arrow-down-wide-short"></i>
+                        <span>
+                            {% if order_by == 'id_desc' %}Más recientes
+                            {% elif order_by == 'modelo_asc' %}Modelo A-Z
+                            {% elif order_by == 'modelo_desc' %}Modelo Z-A
+                            {% elif order_by == 'marca_asc' %}Marca A-Z
+                            {% elif order_by == 'marca_desc' %}Marca Z-A
+                            {% elif order_by == 'cilindraje_asc' %}Cilindraje ↑
+                            {% elif order_by == 'cilindraje_desc' %}Cilindraje ↓
+                            {% endif %}
+                        </span>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <table>
+            <tr>
+                <th><i class="fa-solid fa-hashtag"></i> Id</th>
+                <th><i class="fa-solid fa-tag"></i> Modelo</th>
+                <th><i class="fa-solid fa-building"></i> Marca</th>
+                <th><i class="fa-solid fa-palette"></i> Color</th>
+                <th><i class="fa-solid fa-gauge-high"></i> Cilindraje</th>
+                <th><i class="fa-solid fa-gear"></i> Acciones</th>
+            </tr>
+            {% if motos %}
+                {% for moto in motos %}
+                <tr style="opacity: 0; transform: translateY(20px); transition: all 0.3s ease;">
+                    <td>{{ moto[0] }}</td>
+                    <td>{{ moto[1] }}</td>
+                    <td>{{ moto[2] }}</td>
+                    <td>{{ moto[3] }}</td>
+                    <td>{{ moto[4] }}cc</td>
+                    <td>
+                        <a href="{{ url_for('update.ver_moto', id=moto[0]) }}">
+                            <i class="fa-solid fa-pen-to-square"></i> Editar
+                        </a>
+                        <a href="#" class="btn-delete" data-url="{{ url_for('delete.delete_moto', id=moto[0])}}" onclick="openModal(event, this)">
+                            <i class="fa-solid fa-trash"></i> Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: #8697A6;">
+                        <i class="fa-solid fa-magnifying-glass" style="font-size: 40px; margin-bottom: 15px; display: block;"></i>
+                        {% if search_query or modelo or marca or color or cilindraje_range != 'all' %}
+                            No se encontraron motos con los filtros aplicados
+                        {% else %}
+                            No hay motos registradas
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endif %}
+        </table>
+    </main>
+    
+    <script src="{{ url_for('static', filename='js/read.js') }}"></script>
+</body>
+
+</html>

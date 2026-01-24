@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/create.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Agregar Moto</title>
+</head>
+<body>
+    <a href="{{ url_for('read.home') }}" class="back-button">
+        <i class="fa-solid fa-arrow-left"></i> Volver
+    </a>
+    
+    <div class="container">
+        <h1><i class="fa-solid fa-motorcycle"></i> Nueva Moto</h1>
+        <p class="subtitle">Completa los datos de la motocicleta</p>
+        
+        {% if mensaje %}
+        <p class="mensaje success">
+            <i class="fa-solid fa-circle-check"></i> {{ mensaje }}
+        </p>
+        {% endif %}
+        
+        <form method="POST" action="/create_register">
+            <div class="form-group">
+                <label for="modelo">
+                    <i class="fa-solid fa-tag"></i> Modelo
+                </label>
+                <input type="text" id="modelo" placeholder="Ej: Szr 150" name="modelo" required>
+            </div>
+
+            <div class="form-group">
+                <label for="marca">
+                    <i class="fa-solid fa-building"></i> Marca
+                </label>
+                <input type="text" id="marca" placeholder="Ej: Yamaha" name="marca" required>
+            </div>
+
+            <div class="form-group">
+                <label for="color">
+                    <i class="fa-solid fa-palette"></i> Color
+                </label>
+                <input type="text" id="color" placeholder="Ej: Negro" name="color" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cilindraje">
+                    <i class="fa-solid fa-gauge-high"></i> Cilindraje
+                </label>
+                <input type="number" id="cilindraje" placeholder="Ej: 150" name="cilindraje" required>
+            </div>
+
+            <button type="submit">
+                <i class="fa-solid fa-plus"></i> Registrar Moto
+            </button>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/create.js') }}"></script>
+</body>
+</html>
