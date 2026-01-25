@@ -1,47 +1,43 @@
 from config.conexion import conn
-from flask import Blueprint, render_template, url_for, request
+from flask import Blueprint, render_template, request
 
 read = Blueprint('read', __name__)
 
 @read.route("/")
 def home():
-    # Obtener todos los parámetros de filtro
-    search_query = request.args.get('search_query', '')  # Búsqueda general (básico)
+    search_query = request.args.get('search_query', '')
     modelo = request.args.get('modelo', '')
     marca = request.args.get('marca', '')
     color = request.args.get('color', '')
     cilindraje_range = request.args.get('cilindraje_range', 'all')
     order_by = request.args.get('order_by', 'id_asc')
     
+    connection = conn()
+    cursor = None
+    
     try:
-        cursor = conn.cursor()
+        cursor = connection.cursor()
         
-        # Construir la consulta SQL dinámicamente
         query = "SELECT * FROM motos WHERE 1=1"
         params = []
         
-        # Búsqueda general (para filtros básicos)
         if search_query:
             query += " AND (modelo LIKE %s OR marca LIKE %s OR color LIKE %s)"
             search_param = f"%{search_query}%"
             params.extend([search_param, search_param, search_param])
         
-        # Agregar filtro de modelo (filtros avanzados)
         if modelo:
             query += " AND modelo LIKE %s"
             params.append(f"%{modelo}%")
         
-        # Agregar filtro de marca
         if marca:
             query += " AND marca LIKE %s"
             params.append(f"%{marca}%")
         
-        # Agregar filtro de color
         if color:
             query += " AND color LIKE %s"
             params.append(f"%{color}%")
         
-        # Agregar filtro de cilindraje por rangos
         if cilindraje_range != 'all':
             if cilindraje_range == '0-100':
                 query += " AND cilindraje >= 0 AND cilindraje <= 100"
@@ -58,7 +54,6 @@ def home():
             elif cilindraje_range == '1000-plus':
                 query += " AND cilindraje > 1000"
         
-        # Agregar ordenamiento
         if order_by == 'id_asc':
             query += " ORDER BY id ASC"
         elif order_by == 'id_desc':
@@ -76,7 +71,6 @@ def home():
         elif order_by == 'cilindraje_desc':
             query += " ORDER BY cilindraje DESC"
         
-        # Ejecutar la consulta
         cursor.execute(query, params)
         motos_list = cursor.fetchall()
         
@@ -101,3 +95,4 @@ def home():
     finally:
         if cursor:
             cursor.close()
+        connection.close()

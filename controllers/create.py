@@ -1,5 +1,5 @@
 from config.conexion import conn
-from flask import Blueprint, render_template, request, url_for
+from flask import Blueprint, render_template, request
 
 create = Blueprint('create', __name__)
 
@@ -15,13 +15,21 @@ def create_register():
         marca = request.form["marca"]
         color = request.form["color"]
         cilindraje = request.form["cilindraje"]
-        cursor = conn.cursor()
-        if request.method != "POST":
-                mensaje = "Error al registrar una moto"
-                return render_template('read.html', mensaje=mensaje)
-        cursor.execute(
-                "INSERT INTO motos (modelo, marca, color, cilindraje) VALUES (%s, %s, %s, %s)", (modelo,marca,color,cilindraje)
+        
+        connection = conn()
+        cursor = connection.cursor()
+        
+        try:
+            cursor.execute(
+                "INSERT INTO motos (modelo, marca, color, cilindraje) VALUES (%s, %s, %s, %s)", 
+                (modelo, marca, color, cilindraje)
             )
-        conn.commit()
-        mensaje = "Moto agregada correctamente"
+            connection.commit()
+            mensaje = "Moto agregada correctamente"
+        except Exception as e:
+            mensaje = f"Error al registrar la moto: {str(e)}"
+        finally:
+            cursor.close()
+            connection.close()
+        
         return render_template("create.html", mensaje=mensaje)
