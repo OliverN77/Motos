@@ -2,10 +2,11 @@ import mysql.connector
 
 
 conn = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='',
-        database='taller_motos'
+        host='sql5.freesqldatabase.com',
+        user='sql5815303',
+        password='MhRxWzuYVv',
+        database='sql5815303',
+        port=3306
     )
 
 if conn.is_connected():
