@@ -27,7 +27,7 @@ Una aplicación web moderna y completa para gestionar un inventario de motocicle
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <url-del-repositorio>
+git clone <https://github.com/OliverN77/Motos.git>
 cd motos
 ```
 
