@@ -4,8 +4,7 @@ from flask import Blueprint, render_template, request
 create = Blueprint('create', __name__)
 
 @create.route('/create_page')
-def create_page():
-    return render_template('create.html')
+def create_page(): return render_template('create.html')
 
 @create.route('/create_register', methods=["GET", "POST"])
 def create_register():
